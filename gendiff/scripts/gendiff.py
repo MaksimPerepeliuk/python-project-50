@@ -1,5 +1,6 @@
 import argparse
 import json
+from gendiff.scripts.parsers import parser
 
 
 def get_filepaths_cli():
@@ -26,18 +27,15 @@ def generate_diff(obj1, obj2):
     }
     diff_items = []
     for diff_char, diff_func in diff_actions.items():
-        diff_items = [*diff_items,
-                      *[(diff_char, k, v)
-                        for k, v in diff_func(items1, items2)]]
-    diff_dict = {f'{c}{k}': v
-                 for c, k, v in sorted(diff_items, key=lambda item: item[1])}
+        diff_elements = [(diff_char, k, v) for k, v in diff_func(items1, items2)]
+        diff_items = [*diff_items, *diff_elements]
+    diff_dict = {f'{c}{k}': v for c, k, v in sorted(diff_items, key=lambda item: item[1])}
     return json.dumps(diff_dict, indent=2)
 
 
 def main():
     first_file_path, second_file_path = get_filepaths_cli()
-    first_file = json.load(open(first_file_path))
-    second_file = json.load(open(second_file_path))
+    first_file, second_file = parser(first_file_path, second_file_path)
     print(generate_diff(first_file, second_file))
 
 
